@@ -10,7 +10,7 @@
     }
     * { box-sizing: border-box; }
     body {
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans';
       background: radial-gradient(1200px 600px at 70% -10%, #1b1e27, var(--bg));
       color: var(--text);
     }
@@ -56,7 +56,8 @@
     .ing-name { font-size: 14px; margin-bottom: 2px; }
     .ing-meta { display: flex; gap: 6px; flex-wrap: wrap; }
     .tag { font-size: 11px; color: #9fb4ff; background: #1f2433; border: 1px solid #2c3653; padding: 2px 6px; border-radius: 999px; }
-    .qty-control { display: flex; align-items: center; gap: 4px; }
+    .qty-control { display: flex; align-items: center; gap: 6px; }
+    .qty-control input { width: 60px; }
     .muted { color: var(--muted); font-size: 12px; }
     .results-head {
       display:flex; gap:10px; align-items:center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap;
@@ -81,14 +82,13 @@
       padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px;
     }
     button:hover { background: #243041; }
-    .section-title { font-size: 15px; font-weight: 600; margin: 16px 0 8px; color: var(--accent); }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <h1>¿Qué puedo cocinar? — Zelda: Breath of the Wild</h1>
-      <div class="sub">Marca tus ingredientes (con cantidad) y filtra por efecto para ver recetas posibles. Dataset completo del juego.</div>
+      <div class="sub">Marca tus ingredientes (con cantidad) y filtra por efecto para ver recetas posibles. Dataset amplio del juego.</div>
     </div>
   </header>
 
@@ -100,7 +100,7 @@
       </div>
       <div class="chips" id="catChips"></div>
       <div class="list" id="ingredientsList"></div>
-      <div class="footer-note">Marca los ingredientes que tienes y ajusta la cantidad si quieres.</div>
+      <div class="footer-note">Marca los ingredientes que tienes y ajusta la cantidad si quieres. Se guarda automáticamente en tu navegador.</div>
     </aside>
 
     <main class="panel">
@@ -132,24 +132,20 @@
   </div>
 
   <script>
-    // ========== Dataset completo de ingredientes ==========
-    // Imágenes desde la wiki oficial de Zelda (URLs públicas)
+    // URLs de imágenes públicas (wiki Zelda). Si alguna falla, se usa placeholder.
     const INGREDIENTS = [
-      // === FRUTAS ===
-      { nombre: "Manzana", categoria: "fruta", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/6/65/BotW_Apple_Icon.png" },
+      // FRUTAS
+      { nombre: "Manzana", categoria: "fruta", efecto: "corazones", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/6/65/BotW_Apple_Icon.png" },
       { nombre: "Manzana dorada", categoria: "fruta", efecto: "corazones", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3f/BotW_Golden_Apple_Icon.png" },
       { nombre: "Bellota", categoria: "fruta", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5f/BotW_Acorn_Icon.png" },
-      { nombre: "Nuez de palma", categoria: "fruta", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d0/BotW_Palm_Fruit_Icon.png" },
+      { nombre: "Nuez de palma", categoria: "fruta", efecto: "corazones", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d0/BotW_Palm_Fruit_Icon.png" },
       { nombre: "Plátano recio", categoria: "fruta", efecto: "ataque", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/8/8c/BotW_Mighty_Bananas_Icon.png" },
       { nombre: "Durian vivaz", categoria: "fruta", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/f/f3/BotW_Hearty_Durian_Icon.png" },
       { nombre: "Melón gélido", categoria: "fruta", efecto: "frío", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a0/BotW_Hydromelon_Icon.png" },
       { nombre: "Fruta electro", categoria: "fruta", efecto: "eléctrico", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/e/e0/BotW_Voltfruit_Icon.png" },
-      { nombre: "Fruta ígnea", categoria: "fruta", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/2/2f/BotW_Spicy_Pepper_Icon.png" },
-
-      // === SETAS ===
+      // SETAS
       { nombre: "Seta hyliana", categoria: "seta", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/1/1e/BotW_Hylian_Shroom_Icon.png" },
       { nombre: "Seta resistente", categoria: "seta", efecto: "resistencia", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/8/8f/BotW_Stamella_Shroom_Icon.png" },
-      { nombre: "Seta vivaz", categoria: "seta", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/c/c0/BotW_Hearty_Truffle_Icon.png" },
       { nombre: "Trufa vivaz", categoria: "seta", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/c/c0/BotW_Hearty_Truffle_Icon.png" },
       { nombre: "Seta gélida", categoria: "seta", efecto: "frío", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/7/7f/BotW_Chillshroom_Icon.png" },
       { nombre: "Seta ígnea", categoria: "seta", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a5/BotW_Sunshroom_Icon.png" },
@@ -158,9 +154,7 @@
       { nombre: "Seta robusta", categoria: "seta", efecto: "defensa", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/0/0f/BotW_Ironshroom_Icon.png" },
       { nombre: "Seta sigilosa", categoria: "seta", efecto: "sigilo", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3f/BotW_Silent_Shroom_Icon.png" },
       { nombre: "Seta de fuerza", categoria: "seta", efecto: "ataque", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a1/BotW_Razorshroom_Icon.png" },
-      { nombre: "Seta grande vivaz", categoria: "seta", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5e/BotW_Big_Hearty_Truffle_Icon.png" },
-
-      // === VEGETALES / HIERBAS ===
+      // HIERBAS Y VEGETALES
       { nombre: "Pimiento ígneo", categoria: "vegetal", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/2/2f/BotW_Spicy_Pepper_Icon.png" },
       { nombre: "Rábano vivaz", categoria: "vegetal", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/9/9f/BotW_Hearty_Radish_Icon.png" },
       { nombre: "Rábano grande vivaz", categoria: "vegetal", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/4/4f/BotW_Big_Hearty_Radish_Icon.png" },
@@ -171,20 +165,14 @@
       { nombre: "Flor rauda", categoria: "hierba", efecto: "velocidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5c/BotW_Swift_Violet_Icon.png" },
       { nombre: "Flor sigilosa", categoria: "hierba", efecto: "sigilo", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a0/BotW_Silent_Princess_Icon.png" },
       { nombre: "Flor robusta", categoria: "hierba", efecto: "defensa", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/e/e7/BotW_Armoranth_Icon.png" },
-      { nombre: "Loto resistente", categoria: "hierba", efecto: "resistencia", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d3/BotW_Endura_Shroom_Icon.png" },
-      { nombre: "Loto eléctrico", categoria: "hierba", efecto: "eléctrico", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3e/BotW_Electric_Safflina_Icon.png" },
-      { nombre: "Loto ígneo", categoria: "hierba", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/8/8f/BotW_Warm_Safflina_Icon.png" },
-      { nombre: "Loto gélido", categoria: "hierba", efecto: "frío", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/1/1f/BotW_Cool_Safflina_Icon.png" },
-
-      // === CARNES ===
+      // CARNES
       { nombre: "Carne de caza", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/f/f3/BotW_Raw_Meat_Icon.png" },
       { nombre: "Carne de caza fina", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a7/BotW_Raw_Prime_Meat_Icon.png" },
       { nombre: "Carne de caza suprema", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/50/BotW_Raw_Gourmet_Meat_Icon.png" },
       { nombre: "Carne de ave", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/c/c7/BotW_Raw_Bird_Drumstick_Icon.png" },
       { nombre: "Muslo de ave fina", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/0/0f/BotW_Raw_Bird_Thigh_Icon.png" },
       { nombre: "Muslo de ave suprema", categoria: "carne", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/b/b3/BotW_Raw_Whole_Bird_Icon.png" },
-
-      // === PESCADOS ===
+      // PESCADOS Y MARISCOS
       { nombre: "Lubina de Hyrule", categoria: "pescado", efecto: "corazones", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/8/8e/BotW_Hyrule_Bass_Icon.png" },
       { nombre: "Trucha ígnea", categoria: "pescado", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5a/BotW_Sizzlefin_Trout_Icon.png" },
       { nombre: "Trucha helada", categoria: "pescado", efecto: "frío", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d1/BotW_Chillfin_Trout_Icon.png" },
@@ -196,21 +184,17 @@
       { nombre: "Cangrejo robusta", categoria: "pescado", efecto: "defensa", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/f/f0/BotW_Ironshell_Crab_Icon.png" },
       { nombre: "Caracol vivaz", categoria: "pescado", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/2/2f/BotW_Hearty_Blueshell_Snail_Icon.png" },
       { nombre: "Cangrejo resistente", categoria: "pescado", efecto: "resistencia", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3c/BotW_Bright-Eyed_Crab_Icon.png" },
-
-      // === LÁCTEOS / GRANJA ===
+      // LÁCTEOS Y GRANJA
       { nombre: "Leche fresca", categoria: "lácteo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/4/4c/BotW_Fresh_Milk_Icon.png" },
       { nombre: "Mantequilla de cabra", categoria: "lácteo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a0/BotW_Goat_Butter_Icon.png" },
       { nombre: "Huevo de ave", categoria: "granja", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/f/f4/BotW_Bird_Egg_Icon.png" },
-
-      // === GRANOS / CONDIMENTOS ===
+      // GRANOS Y CONDIMENTOS
       { nombre: "Arroz de Hyrule", categoria: "grano", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5d/BotW_Hylian_Rice_Icon.png" },
       { nombre: "Trigo de Tabanta", categoria: "grano", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/e/e7/BotW_Tabantha_Wheat_Icon.png" },
       { nombre: "Azúcar de caña", categoria: "condimento", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3d/BotW_Cane_Sugar_Icon.png" },
       { nombre: "Sal de roca", categoria: "condimento", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/b/b0/BotW_Rock_Salt_Icon.png" },
       { nombre: "Miel de colmena", categoria: "dulce", efecto: "corazones", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d5/BotW_Courser_Bee_Honey_Icon.png" },
-      { nombre: "Miel energética", categoria: "dulce", efecto: "resistencia", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d5/BotW_Courser_Bee_Honey_Icon.png" },
-
-      // === PARTES DE MONSTRUO (para elixires) ===
+      // PARTES DE MONSTRUO
       { nombre: "Gelatina chuchu", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5f/BotW_Chuchu_Jelly_Icon.png" },
       { nombre: "Ala de keese", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/3/3e/BotW_Keese_Wing_Icon.png" },
       { nombre: "Colmillo de bokoblin", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a7/BotW_Bokoblin_Fang_Icon.png" },
@@ -218,11 +202,7 @@
       { nombre: "Cuerno de moblin", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/2/2f/BotW_Moblin_Horn_Icon.png" },
       { nombre: "Colmillo de moblin", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d0/BotW_Moblin_Fang_Icon.png" },
       { nombre: "Garra de lizalfos", categoria: "monstruo", efecto: "ninguno", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/8/8c/BotW_Lizalfos_Talon_Icon.png" },
-      { nombre: "Cola de lagarto ígneo", categoria: "monstruo", efecto: "calor", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5a/BotW_Red_Lizalfos_Tail_Icon.png" },
-      { nombre: "Cola de lagarto gélido", categoria: "monstruo", efecto: "frío", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d1/BotW_Icy_Lizalfos_Tail_Icon.png" },
-      { nombre: "Cola de lagarto eléctrico", categoria: "monstruo", efecto: "eléctrico", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/7/7f/BotW_Yellow_Lizalfos_Tail_Icon.png" },
-
-      // === BICHOS / CRIATURAS (para elixires) ===
+      // BICHOS PARA ELIXIRES
       { nombre: "Mariposa resistente", categoria: "bicho", efecto: "resistencia", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/d/d3/BotW_Restless_Cricket_Icon.png" },
       { nombre: "Rana rauda", categoria: "bicho", efecto: "velocidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/5/5c/BotW_Hot-Footed_Frog_Icon.png" },
       { nombre: "Rana sigilosa", categoria: "bicho", efecto: "sigilo", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/a/a0/BotW_Sunset_Firefly_Icon.png" },
@@ -234,637 +214,59 @@
       { nombre: "Hada", categoria: "bicho", efecto: "vitalidad", img: "https://static.wikia.nocookie.net/zelda_gamepedia_en/images/c/c0/BotW_Fairy_Icon.png" }
     ];
 
-    // ========== Dataset completo de recetas ==========
+    // Recetas resumidas (puedes ampliar fácilmente)
     const RECETAS = [
-      // === PLATOS BÁSICOS ===
-      {
-        nombre: "Brocheta de carne",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 2,
-        duracion: null,
-        requisitos: [{ anyOf: ["Carne de caza", "Carne de caza fina", "Carne de caza suprema"], cantidad: 1 }]
-      },
-      {
-        nombre: "Brocheta de ave",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 2,
-        duracion: null,
-        requisitos: [{ anyOf: ["Carne de ave", "Muslo de ave fina", "Muslo de ave suprema"], cantidad: 1 }]
-      },
-      {
-        nombre: "Pescado a la parrilla",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 2,
-        duracion: null,
-        requisitos: [{ categoria: "pescado", cantidad: 1 }]
-      },
-      {
-        nombre: "Manzana asada",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 1,
-        duracion: null,
-        requisitos: [{ anyOf: ["Manzana"], cantidad: 1 }]
-      },
-      {
-        nombre: "Seta asada",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 1,
-        duracion: null,
-        requisitos: [{ categoria: "seta", cantidad: 1 }]
-      },
+      { nombre: "Brocheta de carne", tipo: "plato", efecto: "ninguno", corazones: 2, duracion: null,
+        requisitos: [{ anyOf: ["Carne de caza","Carne de caza fina","Carne de caza suprema"], cantidad: 1 }] },
+      { nombre: "Brocheta de ave", tipo: "plato", efecto: "ninguno", corazones: 2, duracion: null,
+        requisitos: [{ anyOf: ["Carne de ave","Muslo de ave fina","Muslo de ave suprema"], cantidad: 1 }] },
+      { nombre: "Pescado a la parrilla", tipo: "plato", efecto: "ninguno", corazones: 2, duracion: null,
+        requisitos: [{ categoria: "pescado", cantidad: 1 }] },
+      { nombre: "Manzana con miel", tipo: "plato", efecto: "corazones", corazones: 3, duracion: null,
+        requisitos: [{ anyOf: ["Manzana"], cantidad: 1 }, { anyOf: ["Miel de colmena"], cantidad: 1 }] },
+      { nombre: "Tarta de manzana", tipo: "plato", efecto: "corazones", corazones: 5, duracion: null,
+        requisitos: [{ anyOf: ["Trigo de Tabanta"], cantidad: 1 }, { anyOf: ["Mantequilla de cabra"], cantidad: 1 }, { anyOf: ["Azúcar de caña"], cantidad: 1 }, { anyOf: ["Manzana"], cantidad: 1 }] },
+      { nombre: "Leche caliente", tipo: "plato", efecto: "corazones", corazones: 2, duracion: null,
+        requisitos: [{ anyOf: ["Leche fresca"], cantidad: 1 }, { anyOf: ["Azúcar de caña"], cantidad: 1 }] },
+      { nombre: "Arroz con carne", tipo: "plato", efecto: "ninguno", corazones: 4, duracion: null,
+        requisitos: [{ anyOf: ["Arroz de Hyrule"], cantidad: 1 }, { anyOf: ["Carne de caza","Carne de caza fina","Carne de caza suprema"], cantidad: 1 }, { anyOf: ["Sal de roca"], cantidad: 1 }] },
+      { nombre: "Arroz con setas", tipo: "plato", efecto: "ninguno", corazones: 3, duracion: null,
+        requisitos: [{ anyOf: ["Arroz de Hyrule"], cantidad: 1 }, { categoria: "seta", cantidad: 1 }] },
+      { nombre: "Lubina a la mantequilla", tipo: "plato", efecto: "corazones", corazones: 4, duracion: null,
+        requisitos: [{ anyOf: ["Lubina de Hyrule"], cantidad: 1 }, { anyOf: ["Mantequilla de cabra"], cantidad: 1 }, { anyOf: ["Sal de roca"], cantidad: 1 }] },
 
-      // === PLATOS CON SAL ===
-      {
-        nombre: "Brocheta de carne con sal",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Carne de caza", "Carne de caza fina", "Carne de caza suprema"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pescado con sal",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { categoria: "pescado", cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
+      // Efectos
+      { nombre: "Salteado ígneo", tipo: "plato", efecto: "calor", corazones: 3, duracion: "5:00",
+        requisitos: [{ anyOf: ["Seta ígnea","Pimiento ígneo","Trucha ígnea"], cantidad: 1 }] },
+      { nombre: "Salteado gélido", tipo: "plato", efecto: "frío", corazones: 3, duracion: "5:00",
+        requisitos: [{ anyOf: ["Seta gélida","Melón gélido","Trucha helada"], cantidad: 1 }] },
+      { nombre: "Salteado eléctrico", tipo: "plato", efecto: "eléctrico", corazones: 3, duracion: "5:00",
+        requisitos: [{ anyOf: ["Seta electro","Fruta electro","Trucha eléctrica"], cantidad: 1 }] },
+      { nombre: "Salteado raudo", tipo: "plato", efecto: "velocidad", corazones: 3, duracion: "3:00",
+        requisitos: [{ anyOf: ["Seta rauda","Flor rauda","Carpa rauda","Zanahoria rauda"], cantidad: 1 }] },
+      { nombre: "Salteado robusto", tipo: "plato", efecto: "defensa", corazones: 3, duracion: "3:00",
+        requisitos: [{ anyOf: ["Seta robusta","Flor robusta","Carpa robusta","Calabaza robusta"], cantidad: 1 }] },
+      { nombre: "Salteado sigiloso", tipo: "plato", efecto: "sigilo", corazones: 3, duracion: "3:00",
+        requisitos: [{ anyOf: ["Seta sigilosa","Flor sigilosa"], cantidad: 1 }] },
+      { nombre: "Salteado de plátanos recios", tipo: "plato", efecto: "ataque", corazones: 3, duracion: "3:00",
+        requisitos: [{ anyOf: ["Plátano recio","Perca armada","Seta de fuerza"], cantidad: 1 }] },
+      { nombre: "Guiso vivaz", tipo: "plato", efecto: "vitalidad", corazones: 4, duracion: null,
+        requisitos: [{ anyOf: ["Durian vivaz","Rábano vivaz","Trufa vivaz","Salmón vivaz"], cantidad: 1 }] },
+      { nombre: "Salteado resistente", tipo: "plato", efecto: "resistencia", corazones: 3, duracion: null,
+        requisitos: [{ anyOf: ["Seta resistente","Zanahoria resistente"], cantidad: 1 }] },
 
-      // === ARROZ ===
-      {
-        nombre: "Arroz con carne",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { anyOf: ["Carne de caza", "Carne de caza fina", "Carne de caza suprema"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Arroz con setas",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { categoria: "seta", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Arroz con pescado",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { categoria: "pescado", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Risotto de setas",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 5,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { categoria: "seta", cantidad: 1 },
-          { anyOf: ["Mantequilla de cabra"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-
-      // === LÁCTEOS ===
-      {
-        nombre: "Leche caliente",
-        tipo: "plato",
-        efecto: "corazones",
-        corazones: 2,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Leche fresca"], cantidad: 1 },
-          { anyOf: ["Azúcar de caña"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Tortilla esponjosa",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Huevo de ave"], cantidad: 3 },
-          { anyOf: ["Leche fresca"], cantidad: 1 },
-          { anyOf: ["Mantequilla de cabra"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Huevo cocido",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 2,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Huevo de ave"], cantidad: 1 }
-        ]
-      },
-
-      // === SOPAS ===
-      {
-        nombre: "Sopa de setas",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { categoria: "seta", cantidad: 2 },
-          { anyOf: ["Leche fresca"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Sopa de verduras",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { categoria: "vegetal", cantidad: 2 },
-          { anyOf: ["Leche fresca"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-
-      // === DULCES ===
-      {
-        nombre: "Manzana con miel",
-        tipo: "plato",
-        efecto: "corazones",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Manzana"], cantidad: 1 },
-          { anyOf: ["Miel de colmena"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Tarta de manzana",
-        tipo: "plato",
-        efecto: "corazones",
-        corazones: 5,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Trigo de Tabanta"], cantidad: 1 },
-          { anyOf: ["Mantequilla de cabra"], cantidad: 1 },
-          { anyOf: ["Azúcar de caña"], cantidad: 1 },
-          { anyOf: ["Manzana"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pastel de frutas",
-        tipo: "plato",
-        efecto: "corazones",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Trigo de Tabanta"], cantidad: 1 },
-          { anyOf: ["Azúcar de caña"], cantidad: 1 },
-          { categoria: "fruta", cantidad: 2 }
-        ]
-      },
-      {
-        nombre: "Tarta de zanahoria",
-        tipo: "plato",
-        efecto: "resistencia",
-        corazones: 4,
-        duracion: "2:00",
-        requisitos: [
-          { anyOf: ["Trigo de Tabanta"], cantidad: 1 },
-          { anyOf: ["Mantequilla de cabra"], cantidad: 1 },
-          { anyOf: ["Azúcar de caña"], cantidad: 1 },
-          { anyOf: ["Zanahoria resistente"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: CALOR (resistencia al frío) ===
-      {
-        nombre: "Salteado ígneo",
-        tipo: "plato",
-        efecto: "calor",
-        corazones: 3,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Seta ígnea", "Pimiento ígneo", "Trucha ígnea", "Fruta ígnea"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado ígneo especial",
-        tipo: "plato",
-        efecto: "calor",
-        corazones: 5,
-        duracion: "10:00",
-        requisitos: [
-          { anyOf: ["Seta ígnea", "Pimiento ígneo", "Trucha ígnea"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pescado ígneo",
-        tipo: "plato",
-        efecto: "calor",
-        corazones: 4,
-        duracion: "7:00",
-        requisitos: [
-          { anyOf: ["Trucha ígnea"], cantidad: 1 },
-          { anyOf: ["Pimiento ígneo"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: FRÍO (resistencia al calor) ===
-      {
-        nombre: "Salteado gélido",
-        tipo: "plato",
-        efecto: "frío",
-        corazones: 3,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Seta gélida", "Melón gélido", "Trucha helada"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado gélido especial",
-        tipo: "plato",
-        efecto: "frío",
-        corazones: 5,
-        duracion: "10:00",
-        requisitos: [
-          { anyOf: ["Seta gélida", "Melón gélido", "Trucha helada"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pescado gélido",
-        tipo: "plato",
-        efecto: "frío",
-        corazones: 4,
-        duracion: "7:00",
-        requisitos: [
-          { anyOf: ["Trucha helada"], cantidad: 1 },
-          { anyOf: ["Melón gélido"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: ELÉCTRICO ===
-      {
-        nombre: "Salteado eléctrico",
-        tipo: "plato",
-        efecto: "eléctrico",
-        corazones: 3,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Seta electro", "Fruta electro", "Trucha eléctrica"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado eléctrico especial",
-        tipo: "plato",
-        efecto: "eléctrico",
-        corazones: 5,
-        duracion: "10:00",
-        requisitos: [
-          { anyOf: ["Seta electro", "Fruta electro", "Trucha eléctrica"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: VELOCIDAD ===
-      {
-        nombre: "Salteado raudo",
-        tipo: "plato",
-        efecto: "velocidad",
-        corazones: 3,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Seta rauda", "Flor rauda", "Carpa rauda", "Zanahoria rauda"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado raudo especial",
-        tipo: "plato",
-        efecto: "velocidad",
-        corazones: 5,
-        duracion: "6:00",
-        requisitos: [
-          { anyOf: ["Seta rauda", "Flor rauda", "Carpa rauda"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pescado raudo",
-        tipo: "plato",
-        efecto: "velocidad",
-        corazones: 4,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Carpa rauda"], cantidad: 1 },
-          { anyOf: ["Flor rauda"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: DEFENSA ===
-      {
-        nombre: "Salteado robusto",
-        tipo: "plato",
-        efecto: "defensa",
-        corazones: 3,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Seta robusta", "Flor robusta", "Carpa robusta", "Calabaza robusta"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado robusto especial",
-        tipo: "plato",
-        efecto: "defensa",
-        corazones: 5,
-        duracion: "6:00",
-        requisitos: [
-          { anyOf: ["Seta robusta", "Flor robusta", "Carpa robusta"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Pescado robusto",
-        tipo: "plato",
-        efecto: "defensa",
-        corazones: 4,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Carpa robusta"], cantidad: 1 },
-          { anyOf: ["Flor robusta"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: SIGILO ===
-      {
-        nombre: "Salteado sigiloso",
-        tipo: "plato",
-        efecto: "sigilo",
-        corazones: 3,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Seta sigilosa", "Flor sigilosa"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado sigiloso especial",
-        tipo: "plato",
-        efecto: "sigilo",
-        corazones: 5,
-        duracion: "6:00",
-        requisitos: [
-          { anyOf: ["Seta sigilosa", "Flor sigilosa"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: ATAQUE ===
-      {
-        nombre: "Salteado de plátanos recios",
-        tipo: "plato",
-        efecto: "ataque",
-        corazones: 3,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Plátano recio", "Perca armada", "Seta de fuerza"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado de plátanos recios especial",
-        tipo: "plato",
-        efecto: "ataque",
-        corazones: 5,
-        duracion: "6:00",
-        requisitos: [
-          { anyOf: ["Plátano recio", "Perca armada", "Seta de fuerza"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: VITALIDAD (corazones extra) ===
-      {
-        nombre: "Guiso vivaz",
-        tipo: "plato",
-        efecto: "vitalidad",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Durian vivaz", "Rábano vivaz", "Trufa vivaz", "Salmón vivaz"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Guiso vivaz especial",
-        tipo: "plato",
-        efecto: "vitalidad",
-        corazones: 6,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Durian vivaz", "Rábano grande vivaz", "Seta grande vivaz"], cantidad: 2 }
-        ]
-      },
-      {
-        nombre: "Pescado vivaz",
-        tipo: "plato",
-        efecto: "vitalidad",
-        corazones: 5,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Salmón vivaz"], cantidad: 1 },
-          { anyOf: ["Rábano vivaz"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS CON EFECTO: RESISTENCIA ===
-      {
-        nombre: "Salteado resistente",
-        tipo: "plato",
-        efecto: "resistencia",
-        corazones: 3,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Seta resistente", "Zanahoria resistente", "Loto resistente"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Salteado resistente especial",
-        tipo: "plato",
-        efecto: "resistencia",
-        corazones: 5,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Seta resistente", "Zanahoria resistente"], cantidad: 2 },
-          { anyOf: ["Carne de caza", "Carne de caza fina"], cantidad: 1 }
-        ]
-      },
-
-      // === PLATOS ESPECIALES ===
-      {
-        nombre: "Lubina a la mantequilla",
-        tipo: "plato",
-        efecto: "corazones",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Lubina de Hyrule"], cantidad: 1 },
-          { anyOf: ["Mantequilla de cabra"], cantidad: 1 },
-          { anyOf: ["Sal de roca"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Curry de carne",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 5,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { anyOf: ["Carne de caza", "Carne de caza fina", "Carne de caza suprema"], cantidad: 1 },
-          { anyOf: ["Hierba aromática"], cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Curry de verduras",
-        tipo: "plato",
-        efecto: "ninguno",
-        corazones: 4,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Arroz de Hyrule"], cantidad: 1 },
-          { categoria: "vegetal", cantidad: 2 },
-          { anyOf: ["Hierba aromática"], cantidad: 1 }
-        ]
-      },
-
-      // === ELIXIRES (bicho + parte de monstruo) ===
-      {
-        nombre: "Elixir raudo",
-        tipo: "elixir",
-        efecto: "velocidad",
-        corazones: 0,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Rana rauda"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir sigiloso",
-        tipo: "elixir",
-        efecto: "sigilo",
-        corazones: 0,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Rana sigilosa"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir robusto",
-        tipo: "elixir",
-        efecto: "defensa",
-        corazones: 0,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Lagartija robusta"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir ígneo",
-        tipo: "elixir",
-        efecto: "calor",
-        corazones: 0,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Lagartija ígnea"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir gélido",
-        tipo: "elixir",
-        efecto: "frío",
-        corazones: 0,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Lagartija gélida"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir eléctrico",
-        tipo: "elixir",
-        efecto: "eléctrico",
-        corazones: 0,
-        duracion: "5:00",
-        requisitos: [
-          { anyOf: ["Mariposa eléctrica"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir de fuerza",
-        tipo: "elixir",
-        efecto: "ataque",
-        corazones: 0,
-        duracion: "3:00",
-        requisitos: [
-          { anyOf: ["Escarabajo de fuerza"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir resistente",
-        tipo: "elixir",
-        efecto: "resistencia",
-        corazones: 0,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Mariposa resistente"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      },
-      {
-        nombre: "Elixir vivaz",
-        tipo: "elixir",
-        efecto: "vitalidad",
-        corazones: 0,
-        duracion: null,
-        requisitos: [
-          { anyOf: ["Hada"], cantidad: 1 },
-          { categoria: "monstruo", cantidad: 1 }
-        ]
-      }
+      // Elixires
+      { nombre: "Elixir raudo", tipo: "elixir", efecto: "velocidad", corazones: 0, duracion: "3:00",
+        requisitos: [{ anyOf: ["Rana rauda"], cantidad: 1 }, { categoria: "monstruo", cantidad: 1 }] },
+      { nombre: "Elixir sigiloso", tipo: "elixir", efecto: "sigilo", corazones: 0, duracion: "3:00",
+        requisitos: [{ anyOf: ["Rana sigilosa"], cantidad: 1 }, { categoria: "monstruo", cantidad: 1 }] },
+      { nombre: "Elixir de fuerza", tipo: "elixir", efecto: "ataque", corazones: 0, duracion: "3:00",
+        requisitos: [{ anyOf: ["Escarabajo de fuerza"], cantidad: 1 }, { categoria: "monstruo", cantidad: 1 }] },
+      { nombre: "Elixir eléctrico", tipo: "elixir", efecto: "eléctrico", corazones: 0, duracion: "5:00",
+        requisitos: [{ anyOf: ["Mariposa eléctrica"], cantidad: 1 }, { categoria: "monstruo", cantidad: 1 }] }
     ];
 
-    // ========== Estado ==========
+    // Estado
     const state = {
       search: "",
       categoria: null,
@@ -872,27 +274,41 @@
       effect: ""
     };
 
-    // ========== Utilidades ==========
+    // Persistencia local
+    const LS_KEY = "botw_inventario_v1";
+    function loadInventory() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        state.selected = new Map(Object.entries(obj));
+      } catch {}
+    }
+    function saveInventory() {
+      const obj = {};
+      for (const [k,v] of state.selected) obj[k] = v;
+      localStorage.setItem(LS_KEY, JSON.stringify(obj));
+    }
+
+    // Utilidades
     const norm = s => s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
 
     function matchRequirement(req, selectedMap) {
       const need = req.cantidad || 1;
       if (req.anyOf) {
         let count = 0;
-        for (const n of req.anyOf) {
-          count += selectedMap.get(n) || 0;
-        }
+        for (const n of req.anyOf) count += Number(selectedMap.get(n) || 0);
         return { ok: count >= need, have: count, need };
       }
       if (req.categoria) {
         let count = 0;
         for (const [nombre, qty] of selectedMap) {
           const ing = INGREDIENTS.find(i => i.nombre === nombre);
-          if (ing && ing.categoria === req.categoria) count += qty;
+          if (ing && ing.categoria === req.categoria) count += Number(qty);
         }
         return { ok: count >= need, have: count, need };
       }
-      return { ok: false, have: 0, need: need };
+      return { ok: false, have: 0, need };
     }
 
     function evalRecipe(rec, selectedMap) {
@@ -905,12 +321,7 @@
       return { ok, sugerida, missing };
     }
 
-    function effectLabel(e) {
-      if (!e) return "ninguno";
-      return e;
-    }
-
-    // ========== Render ==========
+    // Render
     const elSearch = document.getElementById("search");
     const elList = document.getElementById("ingredientsList");
     const elCatChips = document.getElementById("catChips");
@@ -927,16 +338,99 @@
       const all = document.createElement("div");
       all.className = "chip" + (state.categoria === null ? " active": "");
       all.textContent = "Todas";
-      all.onclick = () => { state.categoria = null; render(); };
+      all.onclick = () => { state.categoria = null; renderIngredients(); };
       elCatChips.appendChild(all);
-
       CATEGORIAS.forEach(cat => {
         const chip = document.createElement("div");
         chip.className = "chip" + (state.categoria === cat ? " active": "");
         chip.textContent = cat[0].toUpperCase() + cat.slice(1);
-        chip.onclick = () => { state.categoria = (state.categoria === cat ? null : cat); render(); };
+        chip.onclick = () => { state.categoria = (state.categoria === cat ? null : cat); renderIngredients(); };
         elCatChips.appendChild(chip);
       });
+    }
+
+    function ingredientRow(i) {
+      const row = document.createElement("div");
+      row.className = "ingredient";
+
+      const img = document.createElement("img");
+      img.src = i.img;
+      img.alt = i.nombre;
+      img.referrerPolicy = "no-referrer";
+      img.onerror = () => { img.src = "https://via.placeholder.com/48?text=?"; };
+
+      const id = "ing-" + norm(i.nombre).replace(/\s+/g, "-");
+      const label = document.createElement("label");
+      label.setAttribute("for", id);
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.id = id;
+      cb.checked = state.selected.has(i.nombre);
+
+      const info = document.createElement("div");
+      info.className = "ing-info";
+      const name = document.createElement("div");
+      name.className = "ing-name";
+      name.textContent = i.nombre;
+
+      const meta = document.createElement("div");
+      meta.className = "ing-meta";
+      const tagCat = document.createElement("span");
+      tagCat.className = "tag";
+      tagCat.textContent = i.categoria;
+      const tagEff = document.createElement("span");
+      tagEff.className = "tag";
+      tagEff.textContent = i.efecto;
+
+      meta.appendChild(tagCat); meta.appendChild(tagEff);
+      info.appendChild(name); info.appendChild(meta);
+
+      const qtyWrap = document.createElement("div");
+      qtyWrap.className = "qty-control";
+      const qtyLabel = document.createElement("span");
+      qtyLabel.className = "muted";
+      qtyLabel.textContent = "Cantidad";
+      const qtyInput = document.createElement("input");
+      qtyInput.type = "number";
+      qtyInput.min = "1";
+      qtyInput.step = "1";
+      qtyInput.value = state.selected.get(i.nombre) || 1;
+      qtyInput.disabled = !cb.checked;
+
+      cb.onchange = () => {
+        if (cb.checked) {
+          state.selected.set(i.nombre, Number(qtyInput.value) || 1);
+          qtyInput.disabled = false;
+        } else {
+          state.selected.delete(i.nombre);
+          qtyInput.disabled = true;
+        }
+        saveInventory();
+        renderCounts();
+        renderRecipes();
+      };
+
+      qtyInput.oninput = () => {
+        let v = Math.max(1, Math.floor(Number(qtyInput.value) || 1));
+        qtyInput.value = v;
+        if (cb.checked) {
+          state.selected.set(i.nombre, v);
+          saveInventory();
+          renderCounts();
+          renderRecipes();
+        }
+      };
+
+      qtyWrap.appendChild(qtyLabel);
+      qtyWrap.appendChild(qtyInput);
+
+      row.appendChild(img);
+      label.appendChild(cb);
+      label.appendChild(info);
+      row.appendChild(label);
+      row.appendChild(qtyWrap);
+      return row;
     }
 
     function renderIngredients() {
@@ -946,37 +440,101 @@
         .filter(i => state.categoria ? i.categoria === state.categoria : true)
         .filter(i => q ? norm(i.nombre).includes(q) : true)
         .sort((a,b) => a.nombre.localeCompare(b.nombre, "es"))
-        .forEach(i => {
-          const row = document.createElement("div");
-          row.className = "ingredient";
+        .forEach(i => elList.appendChild(ingredientRow(i)));
+    }
 
-          const img = document.createElement("img");
-          img.src = i.img;
-          img.alt = i.nombre;
-          img.onerror = () => { img.src = "https://via.placeholder.com/48?text=?"; };
+    function renderRecipes() {
+      const selectedMap = state.selected;
+      const filtered = RECETAS.filter(r => !state.effect || r.efecto === state.effect);
+      const scored = filtered.map(r => {
+        const { ok, sugerida } = evalRecipe(r, selectedMap);
+        return { ...r, ok, sugerida };
+      });
 
-          const id = "ing-" + norm(i.nombre).replace(/\s+/g, "-");
-          const label = document.createElement("label");
-          label.setAttribute("for", id);
+      const okList = scored.filter(r => r.ok);
+      const sugList = scored.filter(r => r.sugerida);
 
-          const cb = document.createElement("input");
-          cb.type = "checkbox";
-          cb.id = id;
-          cb.checked = state.selected.has(i.nombre);
-          cb.onchange = () => {
-            if (cb.checked) {
-              state.selected.set(i.nombre, 1);
-              qtyInput.disabled = false;
-            } else {
-              state.selected.delete(i.nombre);
-              qtyInput.disabled = true;
-            }
-            renderRecipes();
-            renderCounts();
-          };
+      elRecipes.innerHTML = "";
 
-          const info = document.createElement("div");
-          info.className = "ing-info";
-          const name = document.createElement("div");
-          name.className = "ing-name";
-          name.textContent = i.
+      function card(r, type) {
+        const card = document.createElement("div");
+        card.className = "card";
+        const h = document.createElement("h4");
+        h.textContent = r.nombre;
+        card.appendChild(h);
+
+        const eff = document.createElement("div");
+        eff.className = "eff";
+        const pTipo = document.createElement("span");
+        pTipo.className = "pill";
+        pTipo.textContent = r.tipo;
+        const pEfe = document.createElement("span");
+        pEfe.className = "pill";
+        pEfe.textContent = "efecto: " + (r.efecto || "ninguno");
+        const pCor = document.createElement("span");
+        pCor.className = "pill";
+        pCor.textContent = r.corazones != null ? `corazones: ${r.corazones}` : "corazones: —";
+        const pDur = document.createElement("span");
+        pDur.className = "pill";
+        pDur.textContent = r.duracion ? `duración: ${r.duracion}` : "duración: —";
+        eff.appendChild(pTipo); eff.appendChild(pEfe); eff.appendChild(pCor); eff.appendChild(pDur);
+        card.appendChild(eff);
+
+        const req = document.createElement("div");
+        const ul = document.createElement("ul");
+        (r.requisitos || []).forEach(reqi => {
+          const li = document.createElement("li");
+          if (reqi.anyOf) {
+            li.textContent = `${reqi.cantidad || 1} × (${reqi.anyOf.join(" / ")})`;
+          } else if (reqi.categoria) {
+            li.textContent = `${reqi.cantidad || 1} × de categoría: ${reqi.categoria}${reqi.opcional ? " (opcional)" : ""}`;
+          }
+          ul.appendChild(li);
+        });
+        req.appendChild(ul);
+        card.appendChild(req);
+
+        const status = document.createElement("div");
+        status.style.marginTop = "6px";
+        const pill = document.createElement("span");
+        pill.className = "pill " + (type === "ok" ? "ok" : "warn");
+        pill.textContent = type === "ok" ? "Puedes cocinar" : "Sugerida (te falta 1 ingrediente)";
+        status.appendChild(pill);
+        card.appendChild(status);
+
+        return card;
+      }
+
+      okList.forEach(r => elRecipes.appendChild(card(r, "ok")));
+      sugList.forEach(r => elRecipes.appendChild(card(r, "sug")));
+
+      elRecCount.textContent = okList.length + sugList.length;
+    }
+
+    function renderCounts() {
+      // suma total de cantidades seleccionadas
+      let total = 0;
+      for (const [,qty] of state.selected) total += Number(qty) || 0;
+      elInvCount.textContent = total;
+    }
+
+    // Eventos
+    elSearch.addEventListener("input", (e) => { state.search = e.target.value; renderIngredients(); });
+    elEffect.addEventListener("change", (e) => { state.effect = e.target.value; renderRecipes(); });
+    elClear.addEventListener("click", () => {
+      state.selected.clear();
+      saveInventory();
+      renderIngredients();
+      renderRecipes();
+      renderCounts();
+    });
+
+    // Init
+    loadInventory();
+    renderChips();
+    renderIngredients();
+    renderRecipes();
+    renderCounts();
+  </script>
+</body>
+</html>
